@@ -1,0 +1,175 @@
+Sub Macro1()
+Sheets("GBPUSD").Select
+   
+Dim wb As Workbook
+Set wb = ThisWorkbook
+Dim gbpusd As Worksheet
+Set gbpusd = Sheets("GBPUSD")
+Dim standev As Double
+Let standev = gbpusd.Application.WorksheetFunction.StDevP(Range("G2:G101"))
+Dim Lastrow As Long
+Let Lastrow = gbpusd.Cells(Rows.Count, 1).End(xlUp).Row
+Dim Cell As Range
+Dim cfar As Worksheet
+Set cfar = Sheets("CFAR")
+Dim spot As Double
+Let spot = gbpusd.Range("e2")
+
+
+
+cfar.Select
+cfar.Range("b2").Value = "GBPUSD"
+
+cfar.Range("C5:K14").Select
+Selection.ClearContents
+
+'Square root of days calculation
+
+cfar.Range("c5").FormulaR1C1 = "=SQRT(R[-1]C)"
+Range("C5").Select
+Selection.AutoFill Destination:=Range("C5:K5"), Type:=xlFillDefault
+
+'Standard Deviation of range
+
+cfar.Range("C6").Value = standev
+
+'Standard Deviation for each period
+
+Range("D6").FormulaR1C1 = "=R[-1]C*R6C3"
+Range("D6").Select
+Selection.AutoFill Destination:=Range("D6:K6"), Type:=xlFillDefault
+
+'Last close rate as estimated current spot
+
+cfar.Range("c2") = spot
+
+'Calculate worse case rates based on 1 Standard Dev
+
+If cfar.Range("b1").Value = "Receivable" Then
+Range("c8").FormulaR1C1 = "=R2C3*(1+1*R[-2]C)"
+Range("C8").Select
+Selection.AutoFill Destination:=Range("C8:K8"), Type:=xlFillDefault
+
+Else
+
+Range("c8").FormulaR1C1 = "=R2C3/(1+1*R[-2]C)"
+Range("C8").Select
+Selection.AutoFill Destination:=Range("C8:K8"), Type:=xlFillDefault
+
+End If
+
+'Calculate values based on whether payable or receivable
+
+If cfar.Range("b1").Value = "Receivable" Then
+
+Range("C9").FormulaR1C1 = "=R1C3/R[-1]C"
+Range("C9").Select
+Selection.AutoFill Destination:=Range("C9:K9"), Type:=xlFillDefault
+
+Else
+
+Range("c9").FormulaR1C1 = "=R1C3*R[-1]C"
+Range("C9").Select
+Selection.AutoFill Destination:=Range("C9:K9"), Type:=xlFillDefault
+
+End If
+
+Range("c10").FormulaR1C1 = "=R1C4-R[-1]C"
+Range("C10").Select
+Selection.AutoFill Destination:=Range("C10:K10"), Type:=xlFillDefault
+
+'Step 2 progression but for 2 Standard Deviations
+
+
+If cfar.Range("b1").Value = "Receivable" Then
+Range("c12").FormulaR1C1 = "=R2C3*(1+2*R[-6]C)"
+Range("c12").Select
+Selection.AutoFill Destination:=Range("C12:K12"), Type:=xlFillDefault
+
+Else
+
+Range("c12").FormulaR1C1 = "=R2C3/(1+2*R[-6]C)"
+Range("C12").Select
+Selection.AutoFill Destination:=Range("C12:K12"), Type:=xlFillDefault
+
+End If
+
+'Calculate values based on whether payable or receivable
+
+If cfar.Range("b1").Value = "Receivable" Then
+
+Range("C13").FormulaR1C1 = "=R1C3/R[-1]C"
+Range("C13").Select
+Selection.AutoFill Destination:=Range("C13:K13"), Type:=xlFillDefault
+
+Else
+
+Range("c13").FormulaR1C1 = "=R1C3*R[-1]C"
+Range("C13").Select
+Selection.AutoFill Destination:=Range("C13:K13"), Type:=xlFillDefault
+
+End If
+
+Range("c14").FormulaR1C1 = "=R1C4-R[-1]C"
+Range("C14").Select
+Selection.AutoFill Destination:=Range("C14:K14"), Type:=xlFillDefault
+
+
+'Set selling currency
+
+If cfar.Range("b2").Value = "GBPUSD" And cfar.Range("b1").Value = "Receivable" Then
+cfar.Range("F2").Value = "USD"
+
+Else
+
+cfar.Range("F2").Value = "GBP"
+
+End If
+
+If cfar.Range("f2").Value = "USD" Then
+cfar.Range("I2").Value = "GBP"
+Else
+cfar.Range("I2").Value = "USD"
+End If
+
+
+
+'adjust alignment
+Range("F2:G2").Select
+    With Selection
+        .HorizontalAlignment = xlCenterAcrossSelection
+        .VerticalAlignment = xlBottom
+        .WrapText = False
+        .Orientation = 0
+        .AddIndent = False
+        .IndentLevel = 0
+        .ShrinkToFit = False
+        .ReadingOrder = xlContext
+        .MergeCells = False
+    End With
+    
+    Range("I2:J2").Select
+    With Selection
+        .HorizontalAlignment = xlCenterAcrossSelection
+        .VerticalAlignment = xlBottom
+        .WrapText = False
+        .Orientation = 0
+        .AddIndent = False
+        .IndentLevel = 0
+        .ShrinkToFit = False
+        .ReadingOrder = xlContext
+        .MergeCells = False
+    End With
+
+cfar.Range("C9:K10").Select
+    Selection.NumberFormat = "#,##0.00"
+    Range("C13:K14").Select
+    Selection.NumberFormat = "#,##0.00"
+    Range("D21").Select
+
+
+MsgBox ("With a 95% confidence a " & cfar.Range("F2").Value & " " & cfar.Range("c1").Value & " " & cfar.Range("b1") & " will lose no more than the following in " & cfar.Range("i2").Value & vbNewLine & vbNewLine & "30 Days " & cfar.Range("f2").Value & " " & cfar.Range("f14").Value & vbNewLine & vbNewLine & "90 Days " & cfar.Range("f2").Value & " " & cfar.Range("g14").Value)
+
+
+
+End Sub
